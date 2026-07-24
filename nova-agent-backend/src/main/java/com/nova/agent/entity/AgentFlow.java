@@ -92,8 +92,6 @@ public class AgentFlow {
                     case REWRITE -> addNode(id, new QueryRewriteNode(id, name, nodeTypeEnum, inputVars, outputVars, config));
                     case TEXT_PROCESSOR -> addNode(id, new TextProcessorNode(id, name, nodeTypeEnum, inputVars, outputVars, config));
                     case MEMORY -> addNode(id, new MemoryNode(id, name, nodeTypeEnum, inputVars, outputVars, config));
-                    case LOOP -> addNode(id, new LoopNode(id, name, nodeTypeEnum, inputVars, outputVars, config));
-                    case JUMP_LOOP -> addNode(id, new JumpLoopNode(id, name, nodeTypeEnum, inputVars, outputVars, config));
                     case WORKFLOW_AGENT -> addNode(id, new WorkflowAgentNode(id, name, nodeTypeEnum, inputVars, outputVars, config));
                 }
             }

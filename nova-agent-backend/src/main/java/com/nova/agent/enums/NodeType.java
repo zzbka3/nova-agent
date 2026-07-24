@@ -8,8 +8,6 @@ public enum NodeType {
     END,
     LLM,
     IF,
-    LOOP,
-    JUMP_LOOP,
     KNOWLEDGE,
     MESSAGE,
     API,
