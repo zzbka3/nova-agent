@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nova.agent.repository.AgentEdgeExecuteLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.nova.agent.model.po.AgentEdgeExecuteLog">
+        <id column="id" property="id"/>
+        <result column="app_id" property="appId"/>
+        <result column="conversation_id" property="conversationId"/>
+        <result column="execute_id" property="executeId"/>
+        <result column="edge_id" property="edgeId"/>
+        <result column="from_node_id" property="fromNodeId"/>
+        <result column="target_node_id" property="targetNodeId"/>
+        <result column="condition_match" property="conditionMatch"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.nova.agent.model.po.AgentEdgeExecuteLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO agent_edge_execute_log
+        (app_id, conversation_id, execute_id, edge_id, from_node_id, target_node_id, condition_match, creator, create_time)
+        VALUES (#{appId}, #{conversationId}, #{executeId}, #{edgeId}, #{fromNodeId}, #{targetNodeId}, #{conditionMatch}, #{creator}, #{createTime})
+    </insert>
+
+    <select id="selectByExecuteId" resultMap="BaseResultMap">
+        SELECT * FROM agent_edge_execute_log
+        WHERE app_id = #{appId} AND conversation_id = #{conversationId} AND execute_id = #{executeId}
+        ORDER BY id ASC
+    </select>
+
+</mapper>

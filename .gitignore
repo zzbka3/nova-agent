@@ -1,2 +1,3 @@
 /nova-agent-web/node_modules/
 /nova-agent-backend/target/
+/nova-agent-backend/src/main/resources/application-dev.yml

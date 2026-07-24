@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nova.agent.repository.AgentExecuteLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.nova.agent.model.po.AgentExecuteLog">
+        <id column="id" property="id"/>
+        <result column="app_id" property="appId"/>
+        <result column="conversation_id" property="conversationId"/>
+        <result column="request" property="request"/>
+        <result column="response" property="response"/>
+        <result column="status" property="status"/>
+        <result column="total_used_tokens" property="totalUsedTokens"/>
+        <result column="cost_time" property="costTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.nova.agent.model.po.AgentExecuteLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO agent_execute_log (app_id, conversation_id, request, response, status, total_used_tokens, cost_time, creator, create_time)
+        VALUES (#{appId}, #{conversationId}, #{request}, #{response}, #{status}, #{totalUsedTokens}, #{costTime}, #{creator}, #{createTime})
+    </insert>
+
+    <update id="updateResult">
+        UPDATE agent_execute_log SET response = #{response}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE agent_execute_log SET status = #{status}, response = COALESCE(#{response}, response), update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM agent_execute_log WHERE id = #{id}
+    </select>
+
+    <select id="selectByConversation" resultMap="BaseResultMap">
+        SELECT * FROM agent_execute_log
+        WHERE app_id = #{appId} AND conversation_id = #{conversationId}
+        ORDER BY create_time DESC
+        <if test="limit != null and limit > 0">LIMIT #{limit}</if>
+    </select>
+
+    <select id="selectLastByConversation" resultMap="BaseResultMap">
+        SELECT * FROM agent_execute_log
+        WHERE app_id = #{appId} AND conversation_id = #{conversationId}
+        <if test="timestamp != null and timestamp > 0">
+            AND UNIX_TIMESTAMP(create_time) * 1000 > #{timestamp}
+        </if>
+        ORDER BY create_time DESC LIMIT 1
+    </select>
+
+    <select id="sumUsedTokens" resultType="int">
+        SELECT COALESCE(SUM(total_used_tokens), 0) FROM agent_execute_log
+        WHERE app_id = #{appId} AND conversation_id = #{conversationId} AND id = #{executeId}
+    </select>
+
+</mapper>

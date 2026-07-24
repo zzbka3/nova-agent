@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nova.agent.repository.AgentMapper">
+
+    <resultMap id="BaseResultMap" type="com.nova.agent.model.po.Agent">
+        <id column="id" property="id"/>
+        <result column="app_id" property="appId"/>
+        <result column="name" property="name"/>
+        <result column="config" property="config"/>
+        <result column="status" property="status"/>
+        <result column="agent_type" property="agentType"/>
+        <result column="memory_schema" property="memorySchema"/>
+        <result column="reference_turns" property="referenceTurns"/>
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="updater" property="updater"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, app_id, name, config, status, agent_type, memory_schema, reference_turns,
+        creator, create_time, updater, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM agent WHERE id = #{id}
+    </select>
+
+    <select id="selectByAppId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM agent WHERE app_id = #{appId} LIMIT 1
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM agent ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByQuery" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM agent
+        <where>
+            <if test="query != null and query != ''">
+                AND name LIKE CONCAT('%', #{query}, '%')
+            </if>
+            <if test="isPublished != null and isPublished > 0">
+                AND status = #{isPublished}
+            </if>
+            <if test="agentType != null and agentType > 0">
+                AND agent_type = #{agentType}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <insert id="insert" parameterType="com.nova.agent.model.po.Agent" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO agent (app_id, name, config, status, agent_type, memory_schema, reference_turns, creator, create_time, updater, update_time)
+        VALUES (#{appId}, #{name}, #{config}, #{status}, #{agentType}, #{memorySchema}, #{referenceTurns}, COALESCE(#{creator}, ''), COALESCE(#{createTime}, NOW()), COALESCE(#{updater}, ''), COALESCE(#{updateTime}, NOW()))
+    </insert>
+
+    <update id="updateByAppId" parameterType="com.nova.agent.model.po.Agent">
+        UPDATE agent
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="config != null">config = #{config},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="agentType != null">agent_type = #{agentType},</if>
+            <if test="memorySchema != null">memory_schema = #{memorySchema},</if>
+            <if test="referenceTurns != null">reference_turns = #{referenceTurns},</if>
+            <if test="updater != null">updater = #{updater},</if>
+            update_time = NOW()
+        </set>
+        WHERE app_id = #{appId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE agent SET status = #{status}, update_time = NOW() WHERE app_id = #{appId}
+    </update>
+
+    <delete id="deleteByAppId">
+        DELETE FROM agent WHERE app_id = #{appId}
+    </delete>
+
+    <select id="selectLatestPublishedTime" resultType="long">
+        SELECT UNIX_TIMESTAMP(MAX(update_time)) * 1000 FROM agent WHERE app_id = #{appId} AND status = 1
+    </select>
+
+</mapper>

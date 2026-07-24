@@ -2,6 +2,7 @@ package com.nova.agent.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.PageInfo;
 import com.nova.agent.constant.ErrorCode;
 import com.nova.agent.controller.request.AgentEditRequest;
 import com.nova.agent.controller.request.RunningInfoRequest;
@@ -157,8 +158,8 @@ public class AgentFlowController {
 
         RunningInfoResponse response = new RunningInfoResponse();
         response.setStatus(executeLog.getStatus());
-        boolean finished = AgentRunningStatus.FINISH.getStatus().equals(executeLog.getStatus())
-                || AgentRunningStatus.EXCEPTION.getStatus().equals(executeLog.getStatus());
+        boolean finished = AgentRunningStatus.FINISH.getStatus() == executeLog.getStatus()
+                || AgentRunningStatus.EXCEPTION.getStatus() == executeLog.getStatus();
         response.setFinish(finished ? 1 : 0);
         response.setNodes(nodeLogs);
         response.setEdges(edgeLogs);
@@ -207,10 +208,10 @@ public class AgentFlowController {
      */
     @GetMapping("/list")
     public Result<PageInfo<AgentVo>> list(@RequestParam(required = false) String query,
-                                           @RequestParam(required = false, defaultValue = "0") Integer isPublished,
-                                           @RequestParam(required = false, defaultValue = "0") Integer agentType,
-                                           @RequestParam Integer page,
-                                           @RequestParam Integer pageSize) {
+                                          @RequestParam(required = false, defaultValue = "0") Integer isPublished,
+                                          @RequestParam(required = false, defaultValue = "0") Integer agentType,
+                                          @RequestParam Integer page,
+                                          @RequestParam Integer pageSize) {
         return Result.success(agentFlowService.listAgent(query, isPublished, agentType, page, pageSize));
     }
 

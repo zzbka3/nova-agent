@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nova.agent.repository.SupportLlmMapper">
+
+    <resultMap id="BaseResultMap" type="com.nova.agent.model.po.SupportLlm">
+        <id column="id" property="id"/>
+        <result column="llm_code" property="llmCode"/>
+        <result column="display_name" property="displayName"/>
+        <result column="model_server" property="modelServer"/>
+        <result column="model_type" property="modelType"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM support_llm WHERE status = 1 ORDER BY id
+    </select>
+
+    <select id="selectByModelType" resultMap="BaseResultMap">
+        SELECT * FROM support_llm WHERE model_type = #{modelType} AND status = 1 ORDER BY id
+    </select>
+
+    <insert id="insert" parameterType="com.nova.agent.model.po.SupportLlm">
+        INSERT INTO support_llm (llm_code, display_name, model_server, model_type, status)
+        VALUES (#{llmCode}, #{displayName}, #{modelServer}, #{modelType}, #{status})
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM support_llm WHERE id = #{id}
+    </delete>
+
+</mapper>

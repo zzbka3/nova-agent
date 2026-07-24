@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nova.agent.repository.WorkFlowNodeDependencyMapper">
+
+    <resultMap id="BaseResultMap" type="com.nova.agent.model.po.WorkFlowNodeDependency">
+        <id column="id" property="id"/>
+        <result column="parent_agent_id" property="parentAgentId"/>
+        <result column="child_agent_id" property="childAgentId"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM workflow_node_dependency WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM workflow_node_dependency ORDER BY id
+    </select>
+
+    <insert id="insert" parameterType="com.nova.agent.model.po.WorkFlowNodeDependency" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO workflow_node_dependency (parent_agent_id, child_agent_id)
+        VALUES (#{parentAgentId}, #{childAgentId})
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM workflow_node_dependency WHERE id = #{id}
+    </delete>
+
+</mapper>

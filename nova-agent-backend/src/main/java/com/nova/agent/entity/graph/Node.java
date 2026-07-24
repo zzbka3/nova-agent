@@ -27,9 +27,9 @@ import java.util.Objects;
 @Slf4j
 public abstract class Node {
     /** Node ID */
-    private String nodeId;
+    public String nodeId;
     /** Node name */
-    private String nodeName;
+    public String nodeName;
     /** Node type */
     public NodeType nodeType;
     /** Node input variables */

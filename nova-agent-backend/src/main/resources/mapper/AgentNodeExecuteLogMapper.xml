@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nova.agent.repository.AgentNodeExecuteLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.nova.agent.model.po.AgentNodeExecuteLog">
+        <id column="id" property="id"/>
+        <result column="app_id" property="appId"/>
+        <result column="conversation_id" property="conversationId"/>
+        <result column="execute_id" property="executeId"/>
+        <result column="node_id" property="nodeId"/>
+        <result column="node_name" property="nodeName"/>
+        <result column="node_type" property="nodeType"/>
+        <result column="input_vars" property="inputVars"/>
+        <result column="output_vars" property="outputVars"/>
+        <result column="status" property="status"/>
+        <result column="cost_time" property="costTime"/>
+        <result column="used_tokens" property="usedTokens"/>
+        <result column="exception" property="exception"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.nova.agent.model.po.AgentNodeExecuteLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO agent_node_execute_log
+        (app_id, conversation_id, execute_id, node_id, node_name, node_type, input_vars, output_vars, status, cost_time, used_tokens, exception, creator, create_time)
+        VALUES (#{appId}, #{conversationId}, #{executeId}, #{nodeId}, #{nodeName}, #{nodeType}, #{inputVars}, #{outputVars}, #{status}, #{costTime}, #{usedTokens}, #{exception}, #{creator}, #{createTime})
+    </insert>
+
+    <update id="updateById" parameterType="com.nova.agent.model.po.AgentNodeExecuteLog">
+        UPDATE agent_node_execute_log
+        <set>
+            <if test="inputVars != null">input_vars = #{inputVars},</if>
+            <if test="outputVars != null">output_vars = #{outputVars},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="costTime != null">cost_time = #{costTime},</if>
+            <if test="usedTokens != null">used_tokens = #{usedTokens},</if>
+            <if test="exception != null">exception = #{exception},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectByExecuteId" resultMap="BaseResultMap">
+        SELECT * FROM agent_node_execute_log
+        WHERE app_id = #{appId} AND conversation_id = #{conversationId} AND execute_id = #{executeId}
+        ORDER BY id ASC
+    </select>
+
+</mapper>
