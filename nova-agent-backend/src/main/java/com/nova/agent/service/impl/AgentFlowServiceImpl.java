@@ -58,9 +58,6 @@ public class AgentFlowServiceImpl implements AgentFlowService {
     private ConversationMapper conversationMapper;
 
     @Autowired
-    private AgentFileMapper agentFileMapper;
-
-    @Autowired
     private SupportLlmMapper supportLlmMapper;
 
     @Autowired
@@ -138,20 +135,6 @@ public class AgentFlowServiceImpl implements AgentFlowService {
         conversation.setConversationId(conversationId);
         conversation.setCreateTime(new Date());
         conversationMapper.insert(conversation);
-    }
-
-    @Override
-    public String saveFile(String appId, String conversationId, String fileName, String url) {
-        AgentFile file = new AgentFile();
-        file.setAppId(appId);
-        file.setConversationId(conversationId);
-        file.setFileName(fileName);
-        file.setFileUrl(url);
-        file.setFileId(UUID.randomUUID().toString());
-        file.setCreator("");
-        file.setCreateTime(new Date());
-        agentFileMapper.insert(file);
-        return file.getFileId();
     }
 
     @Override

@@ -42,8 +42,6 @@ public interface AgentFlowService {
 
     void generateConversation(String appId, String conversationId);
 
-    String saveFile(String appId, String conversationId, String fileName, String url);
-
     void updateAgentFlowStatus(Long executeId, AgentRunningStatus status, String exceptionMsg);
 
     void insertAgentNodeExecuteLog(AgentNodeExecuteLog nodeExecuteLog);

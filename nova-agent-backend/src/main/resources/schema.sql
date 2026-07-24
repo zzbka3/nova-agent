@@ -135,24 +135,7 @@ CREATE TABLE IF NOT EXISTS `conversation` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会话表';
 
 -- -----------------------------------------------------------
--- 7. agent_file - 上传文件
--- -----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `agent_file` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `app_id` VARCHAR(64) NOT NULL COMMENT '智能体 ID',
-  `conversation_id` VARCHAR(64) NOT NULL COMMENT '会话 ID',
-  `file_name` VARCHAR(512) NOT NULL DEFAULT '' COMMENT '文件名',
-  `file_url` VARCHAR(1024) NOT NULL DEFAULT '' COMMENT '文件 URL',
-  `file_id` VARCHAR(128) NOT NULL COMMENT '文件唯一标识',
-  `creator` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '创建者',
-  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_app_conversation` (`app_id`, `conversation_id`),
-  KEY `idx_file_id` (`file_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='上传文件表';
-
--- -----------------------------------------------------------
--- 8. account - 账号
+-- 7. account - 账号
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `account` (
   `account_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '账号 ID',
@@ -164,7 +147,7 @@ CREATE TABLE IF NOT EXISTS `account` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='账号表';
 
 -- -----------------------------------------------------------
--- 9. token - API 凭证
+-- 8. token - API 凭证
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `token` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -179,7 +162,7 @@ CREATE TABLE IF NOT EXISTS `token` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='API Token 表';
 
 -- -----------------------------------------------------------
--- 10. support_llm - 支持的 LLM 模型
+-- 9. support_llm - 支持的 LLM 模型
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `support_llm` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -194,7 +177,7 @@ CREATE TABLE IF NOT EXISTS `support_llm` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支持的 LLM 模型表';
 
 -- -----------------------------------------------------------
--- 11. account_llm_quota - 账号 LLM 配额
+-- 10. account_llm_quota - 账号 LLM 配额
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `account_llm_quota` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -209,7 +192,7 @@ CREATE TABLE IF NOT EXISTS `account_llm_quota` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='账号 LLM 配额表';
 
 -- -----------------------------------------------------------
--- 12. dictionary - 字典表
+-- 11. dictionary - 字典表
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `dictionary` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -222,7 +205,7 @@ CREATE TABLE IF NOT EXISTS `dictionary` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='字典表';
 
 -- -----------------------------------------------------------
--- 13. workflow_node_dependency - 工作流节点依赖关系
+-- 12. workflow_node_dependency - 工作流节点依赖关系
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `workflow_node_dependency` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -236,7 +219,7 @@ CREATE TABLE IF NOT EXISTS `workflow_node_dependency` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='工作流节点依赖关系表';
 
 -- -----------------------------------------------------------
--- 14. llm_flow_stats - LLM 流量统计
+-- 13. llm_flow_stats - LLM 流量统计
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `llm_flow_stats` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -252,7 +235,7 @@ CREATE TABLE IF NOT EXISTS `llm_flow_stats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='LLM 流量统计表';
 
 -- -----------------------------------------------------------
--- 15. stream_agent_invoke_log - 流式调用日志
+-- 14. stream_agent_invoke_log - 流式调用日志
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `stream_agent_invoke_log` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',

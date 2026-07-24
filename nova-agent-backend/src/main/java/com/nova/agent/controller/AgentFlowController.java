@@ -118,27 +118,7 @@ public class AgentFlowController {
         return Result.success(agentFlowService.checkPublishAgent(appId));
     }
 
-    /**
-     * Upload a file
-     */
-    @PostMapping(value = "/fileUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Result<String> fileUpload(@RequestPart(value = "file", required = false) MultipartFile file,
-                                      @RequestParam("app_id") String appId,
-                                      @RequestParam("conversation_id") String conversationId,
-                                      @RequestParam(required = false, value = "file_url") String fileUrl,
-                                      @RequestParam(required = false, value = "file_name", defaultValue = "") String fileName) {
-        if ((file == null || file.isEmpty()) && StringUtils.isEmpty(fileUrl)) {
-            return Result.error("Please upload a file!");
-        }
-        String url = fileUrl;
-        if (file != null && !file.isEmpty()) {
-            fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            // TODO: Upload file to storage (MinIO/S3/BOS)
-            url = "file://" + fileName;
-        }
-        String fileId = agentFlowService.saveFile(appId, conversationId, fileName, url);
-        return Result.success(fileId);
-    }
+
 
     /**
      * Get running status for real-time frontend display
