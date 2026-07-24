@@ -1,0 +1,29 @@
+{
+  "nodes": [
+    {
+      "id": "1",
+      "type": "START",
+      "properties": "{\"nodeName\":\"开始\",\"inputVars\":[{\"varName\":\"query\",\"varType\":\"String\",\"varValue\":\"你好，请介绍一下你自己\"}],\"outputVars\":[{\"varName\":\"query\",\"varType\":\"String\"}]}"
+    },
+    {
+      "id": "2",
+      "type": "LLM",
+      "properties": "{\"nodeName\":\"大模型回复\",\"model\":\"gpt-3.5-turbo\",\"modelType\":\"LLM\",\"modelServer\":\"openai\",\"temperature\":0.7,\"maxOutputTokens\":500,\"talkHistory\":0,\"systemPrompt\":\"你是一个有用的AI助手\",\"userPrompt\":\"{{query}}\",\"inputVars\":[{\"varName\":\"query\",\"varType\":\"reference\",\"referenceNodeId\":\"1\",\"referenceVarName\":\"query\",\"referenceVarType\":\"String\"}],\"outputVars\":[{\"varName\":\"llm_result\",\"varType\":\"String\"}]}"
+    },
+    {
+      "id": "3",
+      "type": "MESSAGE",
+      "properties": "{\"nodeName\":\"输出消息\",\"isStream\":false,\"msg\":\"LLM响应: {{llm_result}}\",\"inputVars\":[{\"varName\":\"llm_result\",\"varType\":\"reference\",\"referenceNodeId\":\"2\",\"referenceVarName\":\"llm_result\",\"referenceVarType\":\"String\"}],\"outputVars\":[{\"varName\":\"msg\",\"varType\":\"String\"}]}"
+    },
+    {
+      "id": "4",
+      "type": "END",
+      "properties": "{\"nodeName\":\"结束\",\"inputVars\":[{\"varName\":\"msg\",\"varType\":\"reference\",\"referenceNodeId\":\"3\",\"referenceVarName\":\"msg\",\"referenceVarType\":\"String\"}],\"outputVars\":[]}"
+    }
+  ],
+  "edges": [
+    {"id": "e1", "sourceNodeId": "1", "targetNodeId": "2"},
+    {"id": "e2", "sourceNodeId": "2", "targetNodeId": "3"},
+    {"id": "e3", "sourceNodeId": "3", "targetNodeId": "4"}
+  ]
+}
