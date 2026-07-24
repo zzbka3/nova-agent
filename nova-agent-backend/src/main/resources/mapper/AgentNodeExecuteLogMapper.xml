@@ -21,7 +21,7 @@
     <insert id="insert" parameterType="com.nova.agent.model.po.AgentNodeExecuteLog" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO agent_node_execute_log
         (app_id, conversation_id, execute_id, node_id, node_name, node_type, input_vars, output_vars, status, cost_time, used_tokens, exception, creator, create_time)
-        VALUES (#{appId}, #{conversationId}, #{executeId}, #{nodeId}, #{nodeName}, #{nodeType}, #{inputVars}, #{outputVars}, #{status}, #{costTime}, #{usedTokens}, #{exception}, #{creator}, #{createTime})
+        VALUES (#{appId}, #{conversationId}, #{executeId}, #{nodeId}, #{nodeName}, #{nodeType}, COALESCE(#{inputVars}, '[]'), COALESCE(#{outputVars}, '[]'), #{status}, COALESCE(#{costTime}, 0), COALESCE(#{usedTokens}, 0), COALESCE(#{exception}, ''), COALESCE(#{creator}, ''), COALESCE(#{createTime}, NOW()))
     </insert>
 
     <update id="updateById" parameterType="com.nova.agent.model.po.AgentNodeExecuteLog">

@@ -234,7 +234,7 @@ public class AgentFlow {
                     }
 
                     Map<String, List<Edge>> edgeGroup = edges.stream()
-                            .collect(Collectors.groupingBy(Edge::getGroup));
+                            .collect(Collectors.groupingBy(e -> e.getGroup() != null ? e.getGroup() : ""));
                     for (List<Edge> edgeList : edgeGroup.values()) {
                         Edge matchEdge = null;
                         for (Edge edge : edgeList) {
@@ -256,8 +256,8 @@ public class AgentFlow {
                 } catch (Exception e) {
                     getLatch().countDown();
                     this.setStatus(AgentRunningStatus.EXCEPTION);
-                    this.exceptionMsg = "Flow execution error!";
-                    log.error("triggerNode error!", e);
+                    this.exceptionMsg = "Flow execution error: " + e.getMessage();
+                    log.error("triggerNode error! node=%s, nodeId=%s".formatted(node.getNodeName(), node.getNodeId()), e);
                 }
             });
         } catch (RejectedExecutionException e) {
@@ -290,7 +290,7 @@ public class AgentFlow {
             }
 
             Map<String, List<Edge>> edgeGroup = edges.stream()
-                    .collect(Collectors.groupingBy(Edge::getGroup));
+                    .collect(Collectors.groupingBy(e -> e.getGroup() != null ? e.getGroup() : ""));
             List<List<Edge>> noReachEdges = new ArrayList<>();
             boolean hasSuccess = false;
 
@@ -318,7 +318,7 @@ public class AgentFlow {
     private boolean possibleAccess(Node node) {
         Set<Edge> edges = graph.incomingEdgesOf(node);
         Map<String, List<Edge>> edgeGroup = edges.stream()
-                .collect(Collectors.groupingBy(Edge::getGroup));
+                .collect(Collectors.groupingBy(e -> e.getGroup() != null ? e.getGroup() : ""));
         for (Map.Entry<String, List<Edge>> entry : edgeGroup.entrySet()) {
             List<Edge> edgeList = entry.getValue();
             boolean hasNoReach = false, hasSuccess = false;

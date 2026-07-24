@@ -1,10 +1,14 @@
 package com.nova.agent.entity.graph;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
-@Data
+import java.util.Objects;
+
+@Getter
+@Setter
 @NoArgsConstructor
 public class Edge {
     /** Edge ID */
@@ -36,5 +40,23 @@ public class Edge {
         if (condition == null) {
             this.conditionMatch = 1;
         }
+    }
+
+    /**
+     * equals/hashCode based only on ID (immutable), required by JGraphT.
+     * Using @Data would include mutable fields like conditionMatch,
+     * which breaks graph internal lookups after conditionMatch() is called.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Edge edge = (Edge) o;
+        return Objects.equals(id, edge.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

@@ -15,7 +15,7 @@
 
     <insert id="insert" parameterType="com.nova.agent.model.po.AgentExecuteLog" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO agent_execute_log (app_id, conversation_id, request, response, status, total_used_tokens, cost_time, creator, create_time)
-        VALUES (#{appId}, #{conversationId}, #{request}, #{response}, #{status}, #{totalUsedTokens}, #{costTime}, #{creator}, #{createTime})
+        VALUES (#{appId}, #{conversationId}, COALESCE(#{request}, ''), COALESCE(#{response}, ''), #{status}, COALESCE(#{totalUsedTokens}, 0), COALESCE(#{costTime}, 0), COALESCE(#{creator}, ''), COALESCE(#{createTime}, NOW()))
     </insert>
 
     <update id="updateResult">
