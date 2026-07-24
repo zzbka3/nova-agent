@@ -1,0 +1,65 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: nova-agent-backend
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/nova_agent?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+    username: root
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.nova.agent.model.po
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+
+# Thread pool config
+thread-pool:
+  agent-executor:
+    core-size: 8
+    max-size: 16
+    queue-capacity: 100
+  heavy-executor:
+    core-size: 4
+    max-size: 8
+    queue-capacity: 50
+  debug-executor:
+    core-size: 2
+    max-size: 2
+    queue-capacity: 20
+
+# Third-party services
+third-service:
+  knowledge:
+    uri: /api/knowledge
+    bns: http://knowledge-service
+    token: ${KNOWLEDGE_TOKEN:}
+  python-sandbox:
+    base-url: http://localhost:8811
