@@ -36,6 +36,7 @@ import nodeTitle from '../commonComponents/nodeTitle.vue'
 import queryInfo from '../commonComponents/queryInfo.vue'
 import varsTree from '../commonComponents/varsTree.vue'
 import outputs from '../commonComponents/outputs.vue'
+import { agentIconSvg } from '../../common/icons'
 import { getAllArgs } from '../../getArgs'
 
 const props = defineProps<{ name?: string; model: any; lf: any }>()
@@ -52,7 +53,7 @@ const outputsData = ref<any>({})
 const outputList = ref<any[]>([])
 const agentRef = ref()
 const nodeTitleRef = ref()
-const agentIcon = ref('')
+const agentIcon = agentIconSvg
 
 const getId = computed(() => props.model?.id)
 const getNodeName = computed(() => props.model?.properties?.nodeName)

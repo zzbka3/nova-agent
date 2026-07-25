@@ -1,4 +1,5 @@
 import { BezierEdgeModel, BezierEdge, h } from '@logicflow/core'
+import { deleteIconSvg } from '../common/icons'
 
 // Custom edge view with delete button
 class CustomEdge extends BezierEdge {
@@ -27,7 +28,7 @@ class CustomEdge extends BezierEdge {
       }),
       path,
       h('image', {
-        href: '',
+        href: deleteIconSvg,
         x: x - 10,
         y: y - 10,
         className: 'edgeMarkClass',

@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @Slf4j
-@RequestMapping("/v1/agent")
+@RequestMapping("/api/v1/agent")
 public class AgentFlowController {
 
     @Autowired

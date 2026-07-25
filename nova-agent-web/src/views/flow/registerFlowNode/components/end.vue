@@ -27,6 +27,7 @@ import { ref, computed, onMounted, inject } from 'vue'
 import nodeTitle from '../commonComponents/nodeTitle.vue'
 import queryInfo from '../commonComponents/queryInfo.vue'
 import outputs from '../commonComponents/outputs.vue'
+import { endIconSvg } from '../../common/icons'
 import { getAllArgs } from '../../getArgs'
 
 const props = defineProps<{ model: any; lf: any }>()
@@ -41,7 +42,7 @@ const inputVars = ref<any[]>([])
 const allShow = ref(true)
 const arrArgs = ref<any[]>([])
 const endRef = ref()
-const endIcon = ref('')
+const endIcon = endIconSvg
 
 const getNodeId = computed(() => props.model?.id)
 const getNodeName = computed(() => props.model?.properties?.nodeName)

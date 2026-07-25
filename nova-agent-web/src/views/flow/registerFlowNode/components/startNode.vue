@@ -33,6 +33,7 @@ import { ref, computed, onMounted, inject } from 'vue'
 import nodeTitle from '../commonComponents/nodeTitle.vue'
 import varsTree from '../commonComponents/varsTree.vue'
 import outputs from '../commonComponents/outputs.vue'
+import { startIconSvg } from '../../common/icons'
 
 const props = defineProps<{ model: any; lf: any }>()
 const bus: any = inject('$bus')
@@ -44,22 +45,18 @@ const allShow = ref(true)
 const startMockVars = ref<any[]>([])
 const startRef = ref()
 
-// Placeholder icon - would come from assets
-const startIcon = ref('')
+const startIcon = startIconSvg
 
 const getNodeId = computed(() => props.model?.id)
 const getNodeName = computed(() => props.model?.properties?.nodeName)
 
-const getArgs = computed(() => {
-  return [{
-    nodeId: '1',
-    key: '1-system',
-    children: [
-      { varName: 'rawQuery', varType: 'String', varDesc: '原始查询' },
-      { varName: 'conversationId', varType: 'String', varDesc: '会话ID' },
-    ]
-  }]?.[0]?.children || []
-})
+const getArgs = computed(() => ([{
+  nodeId: '1', key: '1-system',
+  children: [
+    { varName: 'rawQuery', varType: 'String', varDesc: '原始查询' },
+    { varName: 'conversationId', varType: 'String', varDesc: '会话ID' },
+  ]
+}]?.[0]?.children || []))
 
 onMounted(() => {
   bus?.on('node:click', (args: any) => {
@@ -92,7 +89,7 @@ function toggleFoldAll(expand: boolean) {
 
 function updateNodeAttributes(expand?: boolean) {
   setTimeout(() => {
-    const el = (document.querySelector(`.start-container`) as HTMLElement)
+    const el = document.querySelector(`.start-container`) as HTMLElement
     const clientHeight = el?.clientHeight
     const edgeModel = props.lf.getNodeModelById(getNodeId.value)
     if (clientHeight > 0) {
@@ -104,5 +101,4 @@ function updateNodeAttributes(expand?: boolean) {
 
 <style lang="less" scoped>
 @import url('../../customCss/index.less');
-.start-container { text-align: left; }
 </style>

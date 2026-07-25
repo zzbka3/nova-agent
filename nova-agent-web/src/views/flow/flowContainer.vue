@@ -21,10 +21,7 @@
       :destroy-on-close="true"
       class="node-config-drawer"
     >
-      <div v-if="clickNode" class="node-config-placeholder">
-        <h3>{{ clickNode?.properties?.nodeName || '节点配置' }}</h3>
-        <p>节点配置面板（待完善）</p>
-      </div>
+      <NodeConfig v-if="clickNode" :click-node="clickNode" :lf="lf" :key="clickNode.id" />
     </a-drawer>
   </div>
 </template>
@@ -37,8 +34,9 @@ import LogicFlow from '@logicflow/core'
 import { MiniMap } from '@logicflow/extension'
 import { Dagre } from '@logicflow/layout'
 import NodePanel from './basics/nodePanel.vue'
+import NodeConfig from './nodeConfig/index.vue'
 import { defaultEdge, animationEdge } from './basics/BezierEdge'
-import { nodeList as nodeListConfig } from './basics/flowConfig'
+import { nodeList as nodeListConfig, defaultNodeData } from './basics/flowConfig'
 import { registerAllNodes } from './registerFlowNode'
 import { customAnchorClickEvent, customBackEvent } from './basics/lfEvent'
 import { getAgentDetail, saveAgent } from './apiList'
@@ -51,9 +49,8 @@ const bus: any = inject('$bus')
 const lf = ref<any>(null)
 const clickNode = ref<any>(null)
 const nodeDialogVisible = ref(false)
-const nodeListConfigRef = ref(nodeListConfig)
 const openCheck = ref(false)
-const flowData = ref<any>({ nodes: [], edges: [] })
+const flowData = ref<any>({ ...defaultNodeData })
 const agentData = ref<any>({})
 const saveTimer = ref<any>(null)
 const isEditName = ref(false)
@@ -61,47 +58,33 @@ const containerRef = ref()
 const nodePanelRef = ref()
 
 const props = defineProps<{ appId?: string }>()
-
 const emit = defineEmits(['syncAgentData'])
-
 const appId = computed(() => props.appId)
 
 onMounted(() => {
   bus?.on('editNodeName', ({ isEditName: editing }: any) => {
     isEditName.value = editing
   })
-  if (appId.value) {
+  if (appId.value && !appId.value.startsWith('new-')) {
     getAgentDetailData()
   } else {
     initLf()
   }
 })
 
-onBeforeUnmount(() => {
-  clearSaveInterval()
-})
-
+onBeforeUnmount(() => { clearSaveInterval() })
 
 function clearSaveInterval() {
-  if (saveTimer.value) {
-    clearTimeout(saveTimer.value)
-    saveTimer.value = null
-  }
+  if (saveTimer.value) { clearTimeout(saveTimer.value); saveTimer.value = null }
 }
 
 async function getAgentDetailData() {
   if (!appId.value) return
   try {
-    const data = await flowRequest({
-      url: getAgentDetail,
-      method: 'get',
-      params: { appId: appId.value }
-    })
+    const data = await flowRequest({ url: getAgentDetail, method: 'get', params: { appId: appId.value } })
     if (data?.config) {
       let { edges = [], nodes = [] } = JSON.parse(data.config) || {}
-      if (edges.length) {
-        edges = edges.map((item: any) => ({ ...item, type: 'EDGE_BEZIER' }))
-      }
+      if (edges.length) edges = edges.map((item: any) => ({ ...item, type: 'EDGE_BEZIER' }))
       flowData.value = { nodes, edges }
       delete data.config
       agentData.value = data
@@ -109,35 +92,18 @@ async function getAgentDetailData() {
     }
     initLf()
     saveTimer.value = setTimeout(() => saveFlowTimer(), 5000)
-  } catch {
-    message.error('获取 agent 详情失败')
-  }
+  } catch { initLf() }
 }
 
 function initLf() {
-  if (lf.value) {
-    lf.value.destroy()
-  }
+  if (lf.value) lf.value.destroy()
   const logicFlow = new LogicFlow({
     adjustEdge: false,
     plugins: [MiniMap, Dagre],
-    pluginsOptions: {
-      miniMap: { width: 200, height: 100, leftPosition: 5, bottomPosition: 5 },
-    },
+    pluginsOptions: { miniMap: { width: 200, height: 100, leftPosition: 5, bottomPosition: 5 } },
     container: containerRef.value,
-    grid: {
-      size: 18,
-      visible: true,
-      type: 'dot' as const,
-      config: { color: '#e2e4ed', thickness: 1 },
-    },
-    keyboard: {
-      enabled: true,
-      shortcuts: [{
-        keys: ['backspace'],
-        callback: () => customBackEvent({ lf: logicFlow, isEditName: isEditName.value, bus })
-      }]
-    },
+    grid: { size: 18, visible: true, type: 'dot' as const, config: { color: '#e2e4ed', thickness: 1 } },
+    keyboard: { enabled: true, shortcuts: [{ keys: ['backspace'], callback: () => customBackEvent({ lf: logicFlow, isEditName: isEditName.value, bus }) }] },
     guards: {
       beforeDelete: (data: any) => {
         if (openCheck.value) { message.error('调试模式不能删除'); return false }
@@ -145,16 +111,15 @@ function initLf() {
         return true
       }
     },
-    edgeTextDraggable: false,
-    hoverOutline: false,
-    edgeTextEdit: false,
-    nodeTextEdit: false,
+    edgeTextDraggable: false, hoverOutline: false, edgeTextEdit: false, nodeTextEdit: false,
   })
   lf.value = logicFlow
   registerAllNodes(logicFlow)
   logicFlow.register(defaultEdge)
   logicFlow.register(animationEdge)
   logicFlow.setDefaultEdgeType('EDGE_BEZIER')
+  const data = flowData.value
+  if (!data.nodes || data.nodes.length === 0) flowData.value = { ...defaultNodeData }
   logicFlow.render(flowData.value)
   registerLfEvents()
   logicFlow.fitView()
@@ -162,60 +127,27 @@ function initLf() {
 
 function registerLfEvents() {
   const logicFlow = lf.value
-  logicFlow.on('node:click', (args: any) => {
-    bus?.emit('node:click', args)
-  })
+  logicFlow.on('node:click', (args: any) => bus?.emit('node:click', args))
   logicFlow.on('node:dbclick', (args: any) => {
     if (openCheck.value) return
     clickNode.value = args?.data || {}
     nodeDialogVisible.value = true
   })
-  logicFlow.on('edge:add', ({ data }: any) => {
-    deleteTempOutputs()
-  })
-  logicFlow.on('blank:click', () => {
-    closeNodeConfigDialog()
-    bus?.emit('node:click', null)
-  })
-  logicFlow.on('connection:not-allowed', (data: any) => {
-    message.error(data.msg)
-  })
-  logicFlow.on('edge:mouseenter', ({ data }: any) => {
-    if (openCheck.value) return
-    logicFlow.getEdgeModelById(data.id)?.setProperties({ showAddMark: true })
-  })
-  logicFlow.on('edge:mouseleave', ({ data }: any) => {
-    logicFlow.getEdgeModelById(data.id)?.setProperties({ showAddMark: false })
-  })
-  logicFlow.on('custom:anchorClick', ({ edge }: any) => {
-    customAnchorClickEvent({ edge, lf: logicFlow, bus })
-  })
-  logicFlow.on('node:delete', ({ data }: any) => {
-    if (nodeDialogVisible.value && clickNode.value?.id === data.id) {
-      nodeDialogVisible.value = false
-      clickNode.value = null
-    }
-  })
+  logicFlow.on('edge:add', () => deleteTempOutputs())
+  logicFlow.on('blank:click', () => { closeNodeConfigDialog(); bus?.emit('node:click', null) })
+  logicFlow.on('connection:not-allowed', (data: any) => message.error(data.msg))
+  logicFlow.on('edge:mouseenter', ({ data }: any) => { if (!openCheck.value) logicFlow.getEdgeModelById(data.id)?.setProperties({ showAddMark: true }) })
+  logicFlow.on('edge:mouseleave', ({ data }: any) => logicFlow.getEdgeModelById(data.id)?.setProperties({ showAddMark: false }))
+  logicFlow.on('custom:anchorClick', ({ edge }: any) => customAnchorClickEvent({ edge, lf: logicFlow, bus }))
+  logicFlow.on('node:delete', ({ data }: any) => { if (nodeDialogVisible.value && clickNode.value?.id === data.id) { nodeDialogVisible.value = false; clickNode.value = null } })
 }
 
-function closeNodeConfigDialog() {
-  nodeDialogVisible.value = false
-  clickNode.value = null
-}
-
-function changeOpenCheck(val: boolean) {
-  openCheck.value = val
-  nodeDialogVisible.value = false
-  clickNode.value = null
-  bus?.emit('node:click', null)
-}
+function closeNodeConfigDialog() { nodeDialogVisible.value = false; clickNode.value = null }
+function changeOpenCheck(val: boolean) { openCheck.value = val; nodeDialogVisible.value = false; clickNode.value = null; bus?.emit('node:click', null) }
 
 function saveFlowTimer() {
-  const graphData = lf.value?.getGraphData()
-  if (graphData && JSON.stringify(graphData) !== JSON.stringify(flowData.value)) {
-    flowData.value = graphData
-    saveFlow()
-  }
+  const gd = lf.value?.getGraphData()
+  if (gd && JSON.stringify(gd) !== JSON.stringify(flowData.value)) { flowData.value = gd; saveFlow() }
   clearSaveInterval()
   saveTimer.value = setTimeout(() => saveFlowTimer(), 10000)
 }
@@ -224,14 +156,7 @@ async function saveFlow(status = 'draft') {
   if (openCheck.value || !appId.value) return
   const { edges, nodes = [] } = lf.value?.getGraphData() || {}
   const { name = '', remark = '', memorySchema = '' } = agentData.value || {}
-  const postData = {
-    name, remark,
-    appId: appId.value,
-    config: JSON.stringify({ edges, nodes }),
-    status,
-    memorySchema,
-  }
-  return flowRequest({ url: saveAgent, method: 'post', data: postData })
+  return flowRequest({ url: saveAgent, method: 'post', data: { name, remark, appId: appId.value, config: JSON.stringify({ edges, nodes }), status, memorySchema } })
 }
 
 defineExpose({ lf, saveFlow, clearSaveInterval })
@@ -249,12 +174,5 @@ defineExpose({ lf, saveFlow, clearSaveInterval })
   :deep(.lf-mini-map) { background: #ebedf1; border: none; }
   :deep(.lf-minimap-viewport) { background: rgba(48,48,48,0.1); }
 }
-.node-config-drawer {
-  :deep(.ant-drawer-content) { overflow: visible !important; }
-}
-.node-config-placeholder {
-  padding: 20px;
-  h3 { margin-bottom: 12px; }
-  p { color: #84868c; }
-}
+.node-config-drawer :deep(.ant-drawer-content) { overflow: visible !important; }
 </style>
