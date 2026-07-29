@@ -28,6 +28,21 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
 @Data
+/**
+ * 大语言模型调用节点。
+ *
+ * <p>支持功能：
+ * <ul>
+ *   <li>多模型提供商（通过 modelServer 区分）</li>
+ *   <li>VL 多模态（通过 modelType 和 imageUrl 支持图片输入）</li>
+ *   <li>对话历史（通过 talkHistory 开关控制是否带上历史轮次）</li>
+ *   <li>Fallback 兜底模型（当主模型失败时自动切换备选模型）</li>
+ *   <li>推理内容输出（{@code reasoning_content} 字段）</li>
+ * </ul>
+ *
+ * <p>输出变量：默认将所有输出变量的值都设为 LLM 返回的文本内容，
+ * 并自动统计 token 消耗量。
+ */
 public class LLMNode extends Node {
     private String model;
     private String modelType;

@@ -12,6 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+/**
+ * 子工作流/流程节点。
+ *
+ * <p>用于在工作流中插入一个处理步骤（通常是非 AI 的纯文本/数据变换）。
+ * 与 {@link WorkflowAgentNode} 不同，此节点不会嵌套执行另一个完整的 Agent，
+ * 而是执行一段简单的模板替换逻辑。
+ */
 @Slf4j
 public class WorkflowNode extends Node {
 

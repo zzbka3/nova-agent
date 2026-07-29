@@ -11,6 +11,14 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+/**
+ * 工作流结束节点。
+ *
+ * <p>收集所有输入变量的值作为最终回答文本，构建 {@link AgentFlowOutput}
+ * 并存入上下文，触发 {@link CountDownLatch} 通知工作流已完成。
+ *
+ * <p>{@link #isEnd()} 返回 {@code true}，工作流引擎在遇到此节点后终止。
+ */
 @Slf4j
 public class EndNode extends Node {
 

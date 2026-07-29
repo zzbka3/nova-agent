@@ -14,6 +14,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * 条件分支节点。
+ *
+ * <p>根据输入变量的值评估条件列表，决定走哪条分支路径。
+ *
+ * <p>条件配置包含：
+ * <ul>
+ *   <li>{@code conditionList}：多个条件组，每组有内部逻辑（AND/OR）和多个 InnerCondition</li>
+ *   <li>{@code defaultTargetNodes}：兜底分支，没有任何条件命中时走此路径</li>
+ * </ul>
+ *
+ * <p>每个 InnerCondition 由左操作数、运算符、右操作数组成，
+ * 运算符包括 EQUAL、GT、CONTAINS、EMPTY 等 16 种（参见 {@link com.nova.agent.enums.IfNodeOpType}）。
+ *
+ * <p>执行结果：修改出边的 {@code conditionMatch} 字段（1=命中，0=未命中），
+ * 后续由 {@link AgentFlow} 的调度逻辑决定走哪条边。
+ */
 @Slf4j
 public class IfNode extends Node {
 

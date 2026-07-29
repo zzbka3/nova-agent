@@ -24,6 +24,20 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * HTTP API 调用节点。
+ *
+ * <p>支持完整的 HTTP 请求配置：
+ * <ul>
+ *   <li>请求方法：GET / POST / PUT / DELETE / PATCH</li>
+ *   <li>请求参数：Query Params、Headers、认证信息</li>
+ *   <li>请求体：JSON / Form Data / Form URL-Encoded</li>
+ *   <li>响应解析：JSON 结构化提取 或 纯文本</li>
+ * </ul>
+ *
+ * <p>入参中的引用变量会自动替换到请求的各个位置（URL、Header、Body）。
+ * 出参按照配置的 JSON 结构从响应中提取字段。
+ */
 @Slf4j
 public class ApiNode extends Node {
 

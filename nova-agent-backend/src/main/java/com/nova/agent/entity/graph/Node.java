@@ -23,6 +23,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * 工作流节点的抽象基类。
+ *
+ * <h3>职责</h3>
+ * <ul>
+ *   <li>定义节点的通用属性：ID、名称、类型、输入/输出变量、执行状态等</li>
+ *   <li>提供 {@link #execute(AgentFlow)} 模板方法，统一包装：入参填充 → 核心逻辑 → 出参回写 → 日志记录</li>
+ *   <li>提供 {@link #replaceVar(String)} 工具方法，用 {{varName}} 占位符替换输入变量值</li>
+ *   <li>提供 {@link #findInputVarValue(String, VarType)} 辅助方法，按名称+类型查找输入变量</li>
+ * </ul>
+ *
+ * <h3>子类必须实现</h3>
+ * <ul>
+ *   <li>{@link #run(AgentFlow)} — 节点的核心业务逻辑</li>
+ *   <li>{@link #fillOutputVar(AgentFlow)} — 将执行结果写入输出变量</li>
+ * </ul>
+ *
+ * <h3>equals / hashCode</h3>
+ * 仅基于不可变的 {@code nodeId}，满足 JGraphT 对图中顶点/边不可变 hashCode 的要求。
+ *
+ * @see com.nova.agent.entity.graph.LLMNode
+ * @see com.nova.agent.entity.graph.IfNode
+ * @see com.nova.agent.entity.AgentFlow
+ */
 @Data
 @Slf4j
 public abstract class Node {
@@ -58,7 +82,24 @@ public abstract class Node {
     }
 
     /**
-     * Execute this node within a workflow context
+     * 模板方法：在当前工作流上下文中执行本节点。
+     *
+     * <p>执行流程：
+     * <ol>
+     *   <li>记录开始时间，从上下文获取用户输入信息</li>
+     *   <li>初始化节点执行日志（状态=INIT）并写入数据库</li>
+     *   <li>调用 {@link #fillInputVar(AgentFlow)} 从上下文中解析引用变量</li>
+     *   <li>记录入参 JSON，更新日志状态为 RUNNING</li>
+     *   <li>调用子类实现的 {@link #run(AgentFlow)} 执行核心逻辑</li>
+     *   <li>调用子类实现的 {@link #fillOutputVar(AgentFlow)} 回写输出变量</li>
+     *   <li>更新节点状态为 FINISH</li>
+     *   <li>在 finally 块中更新日志：耗时、token 用量、状态、异常信息等</li>
+     * </ol>
+     *
+     * <p>异常处理：如果任何步骤抛出异常，节点状态设为 EXCEPTION，
+     * 同时整个 {@link AgentFlow} 也被标记为 EXCEPTION 状态。
+     *
+     * @param agentFlow 当前工作流实例，提供上下文变量存取和状态管理
      */
     public void execute(AgentFlow agentFlow) {
         long start = System.currentTimeMillis();
@@ -129,7 +170,13 @@ public abstract class Node {
     }
 
     /**
-     * Fill input variables from flow context
+     * 从工作流上下文中解析引用变量，填充到输入变量列表中。
+     *
+     * <p>遍历所有输入变量，对类型为 {@code VarType.reference} 的变量，
+     * 调用 {@link AgentFlow#fillInputVar(InputVar)} 从前置节点的输出变量中查找匹配值。
+     * 支持多级引用（如 {@code data.user.name}）。
+     *
+     * @param agentFlow 当前工作流实例
      */
     protected void fillInputVar(AgentFlow agentFlow) {
         if (inputVars != null && !inputVars.isEmpty()) {
@@ -140,31 +187,71 @@ public abstract class Node {
     }
 
     /**
-     * Core node execution logic - subclasses must implement
+     * 节点的核心业务逻辑，由子类实现。
+     *
+     * <p>典型实现：
+     * <ul>
+     *   <li>{@code LLMNode}：调用大模型 API，将结果写入上下文</li>
+     *   <li>{@code ApiNode}：发送 HTTP 请求，将响应写入上下文</li>
+     *   <li>{@code CodeNode}：通过 Python 沙箱执行代码</li>
+     *   <li>{@code IfNode}：评估条件表达式，设置出边的匹配状态</li>
+     *   <li>{@code KnowledgeNode}：检索知识库，返回检索片段</li>
+     * </ul>
+     *
+     * <p>执行结果通常写入 {@code AgentFlow.context} 中，key 格式为
+     * {@code NODE_RESULT_ + nodeId}，供下游节点的 {@link #fillOutputVar(AgentFlow)} 读取。
+     *
+     * @param agentFlow 当前工作流实例
      */
     public abstract void run(AgentFlow agentFlow);
 
     /**
-     * Fill output variables after execution - subclasses must implement
+     * 从上下文中读取本节点的执行结果，回写到输出变量列表中。
+     *
+     * <p>此方法在 {@link #run(AgentFlow)} 之后被调用。下游节点通过引用本节点的
+     * outputVars 来获取执行结果。基类不提供默认实现，每个节点类型的解析逻辑不同：
+     * <ul>
+     *   <li>{@code LLMNode}：解析 API 返回的 JSON，提取 choices[0].message.content</li>
+     *   <li>{@code ApiNode}：根据输出 schema 提取 HTTP 响应中的字段</li>
+     *   <li>{@code CodeNode}：解析 Python 服务返回的 ok/result/error 协议</li>
+     * </ul>
+     *
+     * @param agentFlow 当前工作流实例
      */
     public abstract void fillOutputVar(AgentFlow agentFlow);
 
     /**
-     * Is this an end node?
+     * 本节点是否为结束节点。默认 {@code false}，{@link EndNode} 覆写为 {@code true}。
+     * 当执行到结束节点时，工作流将触发 {@link CountDownLatch} 并返回最终结果。
+     *
+     * @return true 表示本节点是工作流的最后一个节点
      */
     public boolean isEnd() {
         return false;
     }
 
     /**
-     * Is this a start node?
+     * 本节点是否为起始节点。默认 {@code false}，{@link StartNode} 覆写为 {@code true}。
+     * 工作流始终从 START 节点开始执行。
+     *
+     * @return true 表示本节点是工作流的入口节点
      */
     public boolean isStart() {
         return false;
     }
 
     /**
-     * Replace template variables in a string (e.g., {{varName}})
+     * 替换字符串中的模板变量占位符。
+     *
+     * <p>使用 Apache Commons Text {@code StringSubstitutor}，
+     * 将 {@code {{varName}}} 格式的占位符替换为输入变量列表中对应变量的实际值。
+     * 未匹配的占位符保留不变（不会抛异常）。替换后还会清理残留的 {@code {{...}}} 模式。
+     *
+     * <p>典型场景：LLM 节点的 systemPrompt/userPrompt 中的 {@code {{query}}}、
+     * MessageNode 的 msg 模板中的 {@code {{llm_result}}} 等。
+     *
+     * @param input 包含模板占位符的原始字符串
+     * @return 替换后的字符串
      */
     public String replaceVar(String input) {
         Map<String, Object> params = new HashMap<>();
@@ -185,7 +272,14 @@ public abstract class Node {
     }
 
     /**
-     * Find an input variable value by name and type
+     * 按名称和类型查找输入变量的值。
+     *
+     * <p>对于引用类型变量（{@code reference}），使用 {@code referenceVarType} 进行匹配。
+     * 当 {@code paramType} 为 {@code Any} 时，不限制类型匹配。
+     *
+     * @param paramName 变量名称
+     * @param paramType 期望的变量类型，{@code Any} 表示匹配任意类型
+     * @return 变量值，未找到则返回 {@code null}
      */
     public Object findInputVarValue(String paramName, VarType paramType) {
         if (inputVars == null) return null;

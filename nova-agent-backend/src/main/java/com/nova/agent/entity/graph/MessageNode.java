@@ -12,6 +12,18 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+/**
+ * 消息输出节点。
+ *
+ * <p>将输入变量和一段消息模板组合后输出。主要用途：
+ * <ul>
+ *   <li>在 LLM 响应前/后插入固定文案</li>
+ *   <li>将上游节点的输出格式化为特定格式的文本</li>
+ *   <li>在流式场景下控制消息的分段输出</li>
+ * </ul>
+ *
+ * <p>支持 {@code {{varName}}} 模板变量替换。
+ */
 @Slf4j
 public class MessageNode extends Node {
 

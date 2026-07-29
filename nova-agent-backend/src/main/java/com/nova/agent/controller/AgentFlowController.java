@@ -33,6 +33,20 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Agent Flow 核心控制器。
+ *
+ * <p>提供工作流智能体的完整 REST API，包括：
+ * <ul>
+ *   <li><b>执行</b>：{@code POST /api/v1/agent/talk} — 运行工作流</li>
+ *   <li><b>CRUD</b>：{@code save / delete / list / detail}</li>
+ *   <li><b>发布</b>：{@code publish} — 将草稿发布为正式版本</li>
+ *   <li><b>会话</b>：{@code conversation} — 生成会话 ID</li>
+ *   <li><b>监控</b>：{@code runningInfo} — 实时查询执行状态和节点日志</li>
+ *   <li><b>导入/导出</b>：{@code import / export}</li>
+ *   <li><b>调试</b>：{@code validate / apiDebug / codeDebug}</li>
+ * </ul>
+ */
 @RestController
 @Slf4j
 @RequestMapping("/api/v1/agent")

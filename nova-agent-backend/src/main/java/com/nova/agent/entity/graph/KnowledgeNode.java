@@ -20,6 +20,20 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
+/**
+ * 知识库检索节点（RAG）。
+ *
+ * <p>调用外部知识库服务，根据用户查询检索相关文档片段。支持：
+ * <ul>
+ *   <li>多知识库联合检索</li>
+ *   <li>多种检索策略（语义/关键词/混合）</li>
+ *   <li>ReRank 重排序</li>
+ *   <li>结果数量控制（topK）</li>
+ * </ul>
+ *
+ * <p>输入必须包含名为 {@code query} 的变量。
+ * 输出为 {@code OutputList}，包含检索到的文档片段列表（segmentId、content、documentName 等字段）。
+ */
 @Slf4j
 @Data
 public class KnowledgeNode extends Node {

@@ -17,6 +17,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Python 代码沙箱执行节点。
+ *
+ * <p>将用户编写的 Python 代码和输入参数通过 HTTP 发送到独立的 Python 沙箱服务执行。
+ * 沙箱服务返回统一协议：
+ * <pre>{@code
+ * {
+ *   "ok": true|false,
+ *   "result": {...},
+ *   "error": "错误信息",
+ *   "exec_time_ms": 50
+ * }
+ * }</pre>
+ *
+ * <p>输入变量自动序列化为 Python 函数参数。输出变量从 {@code result} 字段中按名称提取。
+ *
+ * <h4>安全说明</h4>
+ * 代码在独立的沙箱进程中执行，与 Java 进程完全隔离。
+ * 沙箱服务应配置资源限制（内存、CPU、超时）。
+ */
 @Slf4j
 public class CodeNode extends Node {
 

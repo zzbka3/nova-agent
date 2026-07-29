@@ -45,6 +45,20 @@ public class AgentFlow {
     private String exceptionMsg;
     private Map<String, Integer> nodeRunStatus = new ConcurrentHashMap<>();
 
+    /**
+     * 从 JSON DSL 字符串构建工作流实例。
+     *
+     * <p>解析过程：
+     * <ol>
+     *   <li>从 {@code nodes} 数组中解析每个节点：id、type、properties</li>
+     *   <li>从 properties 中提取 nodeName、inputVars、outputVars</li>
+     *   <li>根据 type 字段 {@code switch} 分发，实例化对应的 Node 子类并加入 DAG</li>
+     *   <li>从 {@code edges} 数组中解析每条边，构建节点间的有向连接</li>
+     * </ol>
+     *
+     * @param dsl JSON 格式的工作流配置字符串，格式为 {"nodes":[...], "edges":[...]}
+     * @throws AgentFlowConstructException 如果 DSL 解析失败或边引用了不存在的节点
+     */
     public AgentFlow(String dsl) {
         this.graph = new DirectedMultigraph<>(Edge.class);
         this.dependenciesCount = new ConcurrentHashMap<>();
@@ -112,7 +126,10 @@ public class AgentFlow {
     }
 
     /**
-     * Check if the graph is valid (no cycles)
+     * 检查 DAG 是否合法（无环）。
+     * 使用 JGraphT 的 {@link org.jgrapht.alg.cycle.CycleDetector} 进行环检测。
+     *
+     * @return {@code true} 表示无环，工作流可以安全执行
      */
     public boolean checkGraph() {
         CycleDetector<Node, Edge> cycleDetector = new CycleDetector<>(graph);
@@ -124,7 +141,16 @@ public class AgentFlow {
     }
 
     /**
-     * Evaluate a single condition between two variables
+     * 对两个变量执行条件运算，用于 IfNode 的分支判断。
+     *
+     * <p>支持 16 种比较运算：
+     * 相等/不等、大于/小于(等于)、包含/不包含、长度比较、空判断、布尔判断。
+     * 实际运算委托给 {@link com.nova.agent.utils.ConditionUtils}。
+     *
+     * @param left  左操作数
+     * @param right 右操作数
+     * @param op    比较运算符
+     * @return 条件运算结果
      */
     public boolean evalCondition(InputVar left, InputVar right, IfNodeOpType op) {
         return switch (op) {
@@ -148,7 +174,23 @@ public class AgentFlow {
     }
 
     /**
-     * Fire the workflow execution from START node
+     * 从 START 节点点火执行整个工作流。
+     *
+     * <p>完整执行流程：
+     * <ol>
+     *   <li>更新数据库中的执行状态为 RUNNING</li>
+     *   <li>将用户输入存入上下文</li>
+     *   <li>找到 START 节点，调用 {@link #triggerNode(Node, ThreadPoolTaskExecutor)} 启动执行链</li>
+     *   <li>通过 {@link CountDownLatch} 阻塞等待，超时时间 3 分钟</li>
+     *   <li>根据最终状态判断成功或异常，更新数据库</li>
+     *   <li>返回 {@link AgentFlowOutput}（包含回答文本、总 token 数、总耗时）</li>
+     * </ol>
+     *
+     * <p>Debug 模式（{@code userInvokeInput.debug == 1}）使用独立的 debugExecutor 线程池。
+     *
+     * @param userInvokeInput 用户输入，包含 appId、conversationId、query、文件等
+     * @return 工作流执行结果
+     * @throws RuntimeException 如果执行异常或超时
      */
     public AgentFlowOutput fire(UserInvokeInput userInvokeInput) {
         String appId = userInvokeInput.getApp_id();
@@ -202,7 +244,21 @@ public class AgentFlow {
     }
 
     /**
-     * Trigger execution from a node (recursively fires downstream)
+     * 在线程池中异步触发一个节点的执行。
+     *
+     * <p>这是工作流引擎的核心调度方法。执行流程：
+     * <ol>
+     *   <li>防重复执行检查（{@link #hasRun(Node)}）</li>
+     *   <li>将节点提交到线程池</li>
+     *   <li>节点执行后，遍历所有出边并调用 {@link Edge#conditionMatch()}</li>
+     *   <li>按 group 分组出边，每组选出匹配的边</li>
+     *   <li>调用 {@link #propagate(Node, Node, HashSet, ThreadPoolTaskExecutor)} 向后传播</li>
+     * </ol>
+     *
+     * <p>异常处理：线程池满时标记工作流为 EXCEPTION。
+     *
+     * @param node     要触发的节点
+     * @param executor 执行线程池（可能是 agentExecutor、heavyExecutor 或 debugExecutor）
      */
     public void triggerNode(Node node, org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor executor) {
         if (hasRun(node)) {
@@ -358,7 +414,13 @@ public class AgentFlow {
     }
 
     /**
-     * Fill an input variable from context (resolve references)
+     * 解析一个输入变量的引用，从前置节点的输出中获取实际值。
+     *
+     * <p>仅处理 {@code varType == reference} 的变量。根据 {@code referenceNodeId} 找到源节点，
+     * 再根据 {@code referenceVarName} 和 {@code referenceVarType} 匹配源节点的输出变量。
+     * 支持多级引用（点号分隔，如 {@code "data.user.name"}），通过 {@link #extractValue(OutPutVar, String, VarType)} 递归提取。
+     *
+     * @param var 待填充的输入变量
      */
     public void fillInputVar(InputVar var) {
         if (var == null) return;
@@ -402,6 +464,19 @@ public class AgentFlow {
         }
     }
 
+    /**
+     * 从 Object 类型的输出变量中提取多级嵌套字段值。
+     *
+     * <p>例如对于输出变量 {@code data = {user: {name: "张三"}}}，
+     * {@code extractValue(var, "data.user.name", String)} 返回 {@code "张三"}。
+     *
+     * <p>支持 {@code ArrayObject} 类型——当中间层级为数组时，会自动收集每个元素的对应字段。
+     *
+     * @param var        输出变量
+     * @param path       点号分隔的路径，如 {@code "data.user.name"}
+     * @param refVarType 最终字段的类型
+     * @return 提取到的值，未找到则返回 {@code null}
+     */
     public static Object extractValue(OutPutVar var, String path, VarType refVarType) {
         if (var == null || path == null || path.isEmpty()) return null;
         String[] parts = path.split("\\.");
@@ -470,16 +545,37 @@ public class AgentFlow {
         dependenciesCount.get(toId).incrementAndGet();
     }
 
+    /**
+     * 从工作流上下文中获取变量值。
+     * 上下文是一个线程安全的 {@link ConcurrentHashMap}，存储全局信息如用户输入、中间结果等。
+     *
+     * @param var 变量名
+     * @return 变量值，不存在则返回 {@code null}
+     */
     public Object getContextVar(String var) {
         return context.get(var);
     }
 
+    /**
+     * 向工作流上下文中存入变量值。
+     *
+     * @param var   变量名
+     * @param value 变量值
+     */
     public void setContextVar(String var, Object value) {
         context.put(var, value);
     }
 
     /**
-     * Convert a string value to the target type
+     * 将字符串值强制转换为目标变量类型。
+     *
+     * <p>用于 LLM 节点返回结果是纯文本、但下游节点期望特定类型时（如 Integer、Boolean、ArrayString 等）。
+     * 转换失败会抛出 {@code RuntimeException}。
+     *
+     * @param result 字符串形式的原始值
+     * @param type   目标类型
+     * @return 转换后的对象
+     * @throws RuntimeException 如果类型转换失败
      */
     public Object covert(String result, VarType type) {
         try {
@@ -500,6 +596,15 @@ public class AgentFlow {
         }
     }
 
+    /**
+     * 更新一组边的条件和匹配状态。
+     * IfNode 执行后通过此方法标记哪些分支被命中（{@code conditionMatch=1}）、哪些未命中（{@code conditionMatch=0}）。
+     *
+     * @param targetEdges    当前节点的全部出边
+     * @param edgeIds        需要更新的边 ID 列表
+     * @param condition      条件表达式（如 {@code "1==1"} 表示无条件匹配）
+     * @param conditionMatch 匹配状态：1=命中，0=未命中
+     */
     public void updateEdge(Set<Edge> targetEdges, List<String> edgeIds, String condition, Integer conditionMatch) {
         for (Edge edge : targetEdges) {
             if (edgeIds.contains(edge.getId())) {
@@ -509,6 +614,13 @@ public class AgentFlow {
         }
     }
 
+    /**
+     * 判断节点是否已执行过（防重复执行）。
+     * 首次调用时自动标记为已执行。
+     *
+     * @param node 待检查的节点
+     * @return {@code true} 如果节点已经执行过
+     */
     public synchronized boolean hasRun(Node node) {
         boolean run = nodeRunStatus.containsKey(node.getNodeId());
         log.info("node {} has run: {}", node.getNodeId(), run);

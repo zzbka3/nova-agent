@@ -25,6 +25,21 @@ import java.util.Map;
  * MCP (Model Context Protocol) Node
  * Connects to external MCP servers via SSE + JSON-RPC for tool execution.
  */
+/**
+ * MCP（Model Context Protocol）工具调用节点。
+ *
+ * <p>通过 SSE + JSON-RPC 协议与外部 MCP Server 通信，完成以下步骤：
+ * <ol>
+ *   <li>建立 SSE 长连接，获取消息端点 URL</li>
+ *   <li>发送 {@code initialize} JSON-RPC 请求完成握手</li>
+ *   <li>调��� {@code tools/list} 获取可用工具列表</li>
+ *   <li>根据配置的 {@code selectedToolName} 调用 {@code tools/call}</li>
+ *   <li>将返回结果标准化后写入上下文</li>
+ * </ol>
+ *
+ * <p>支持运行时覆盖：如果输入变量中包含 {@code selectedToolName} 或 {@code outputFormat}，
+ * 会覆盖配置中的默认值。
+ */
 @Slf4j
 public class McpNode extends Node {
 

@@ -8,6 +8,17 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+/**
+ * 工作流起始节点。
+ *
+ * <p>在工作流中始终是第一个被执行的节点。负责：
+ * <ul>
+ *   <li>接收用户原始输入</li>
+ *   <li>将输入变量直接透传为输出变量，供后续节点引用</li>
+ * </ul>
+ *
+ * <p>{@link #isStart()} 返回 {@code true}，工作流引擎从它开始点火。
+ */
 @Slf4j
 public class StartNode extends Node {
 
