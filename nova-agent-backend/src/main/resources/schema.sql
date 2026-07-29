@@ -177,21 +177,6 @@ CREATE TABLE IF NOT EXISTS `support_llm` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支持的 LLM 模型表';
 
 -- -----------------------------------------------------------
--- 10. account_llm_quota - 账号 LLM 配额
--- -----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `account_llm_quota` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `account_id` BIGINT NOT NULL COMMENT '账号 ID',
-  `llm_code` VARCHAR(64) NOT NULL COMMENT '模型编码',
-  `quota_limit` BIGINT NOT NULL DEFAULT 0 COMMENT '配额上限',
-  `used` BIGINT NOT NULL DEFAULT 0 COMMENT '已使用量',
-  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_account_llm` (`account_id`, `llm_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='账号 LLM 配额表';
-
--- -----------------------------------------------------------
 -- 11. dictionary - 字典表
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `dictionary` (
@@ -217,36 +202,6 @@ CREATE TABLE IF NOT EXISTS `workflow_node_dependency` (
   KEY `idx_child` (`child_agent_id`),
   UNIQUE KEY `uk_parent_child` (`parent_agent_id`, `child_agent_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='工作流节点依赖关系表';
-
--- -----------------------------------------------------------
--- 13. llm_flow_stats - LLM 流量统计
--- -----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `llm_flow_stats` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `llm_code` VARCHAR(64) NOT NULL COMMENT '模型编码',
-  `account_id` BIGINT NOT NULL DEFAULT 0 COMMENT '账号 ID',
-  `tokens` INT NOT NULL DEFAULT 0 COMMENT 'Token 数量',
-  `invoke_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '调用时间',
-  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_llm_code` (`llm_code`),
-  KEY `idx_account_id` (`account_id`),
-  KEY `idx_invoke_time` (`invoke_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='LLM 流量统计表';
-
--- -----------------------------------------------------------
--- 14. stream_agent_invoke_log - 流式调用日志
--- -----------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `stream_agent_invoke_log` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `invoke_id` VARCHAR(64) NOT NULL COMMENT '调用 ID',
-  `app_id` VARCHAR(64) NOT NULL COMMENT '智能体 ID',
-  `status` INT NOT NULL DEFAULT 0 COMMENT '状态',
-  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_invoke_id` (`invoke_id`),
-  KEY `idx_app_id` (`app_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流式调用日志表';
 
 -- ============================================================
 -- 初始化种子数据
