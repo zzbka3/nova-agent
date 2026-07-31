@@ -7,7 +7,7 @@
           <value>
             <TabSessionState>
               <option name="provider" value="claude" />
-              <option name="sessionId" value="36408604-5a3c-4de3-8438-f8ba8d6705f8" />
+              <option name="sessionId" value="8bf51f8e-8782-4d0c-a4cd-907141bcbb5b" />
               <option name="cwd" value="$PROJECT_DIR$" />
               <option name="model" value="deepseek-v4-pro[1m]" />
               <option name="permissionMode" value="default" />
