@@ -3,3 +3,4 @@
 /nova-agent-backend/src/main/resources/application-dev.yml
 /nova-agent-backend/src/test/resources/application-test.yml
 /.idea/
+/nova-agent-backend/.idea/
