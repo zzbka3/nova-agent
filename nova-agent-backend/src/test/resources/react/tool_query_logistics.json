@@ -1,0 +1,27 @@
+{
+  "toolId": "tool_query_logistics",
+  "name": "查询物流",
+  "description": "根据订单号查询物流状态和快递公司",
+  "executorType": "node",
+  "executorResourceId": {
+    "id": "node_ql",
+    "type": "LLM",
+    "properties": {
+      "nodeName": "物流查询",
+      "model": "deepseek-v4-pro",
+      "modelServer": "https://api.deepseek.com",
+      "temperature": 0.3,
+      "maxOutputTokens": 256,
+      "systemPrompt": "你是一个物流查询助手。根据订单号生成简短物流中文摘要（50字以内），必须包含快递公司和运输状态。",
+      "userPrompt": "根据订单号 {{orderId}} 生成物流状态摘要。",
+      "talkHistory": 0,
+      "inputVars": [{"varName":"orderId","varType":"String","originalVarType":"String"}],
+      "outputVars": [{"varName":"logisticsSummary","varType":"String"}]
+    }
+  },
+  "inputSchema": [{"name":"orderId","type":"string","required":true,"description":"订单号"}],
+  "outputSchema": [{"name":"logisticsSummary","type":"string"}],
+  "inputMapping": [{"source":"inputs.orderId","target":"node.params.orderId"}],
+  "outputMapping": [{"source":"result.logisticsSummary","target":"outputs.logisticsSummary"}],
+  "memoryMapping": [{"source":"outputs.logisticsSummary","target":"memory.logisticsSummary"}]
+}

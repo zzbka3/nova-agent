@@ -1,0 +1,15 @@
+{
+  "name": "智能客服助手",
+  "systemPrompt": "你是电商客服助手。用户询问订单时调用 tool_query_order，询问物流时调用 tool_query_logistics。",
+  "maxLoop": 10,
+  "tools": ["tool_query_order", "tool_query_logistics"],
+  "memorySchema": [
+    {"name": "orderId", "type": "string", "description": "当前关联的订单号"}
+  ],
+  "plannerConfig": {
+    "model": "deepseek-v4-pro",
+    "modelServer": "https://api.deepseek.com",
+    "temperature": 0.3,
+    "maxTokens": 4096
+  }
+}

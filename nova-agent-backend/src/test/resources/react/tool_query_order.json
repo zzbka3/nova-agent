@@ -1,0 +1,27 @@
+{
+  "toolId": "tool_query_order",
+  "name": "查询订单",
+  "description": "根据订单号查询订单状态和详情",
+  "executorType": "node",
+  "executorResourceId": {
+    "id": "node_qo",
+    "type": "LLM",
+    "properties": {
+      "nodeName": "订单查询",
+      "model": "deepseek-v4-pro",
+      "modelServer": "https://api.deepseek.com",
+      "temperature": 0.3,
+      "maxOutputTokens": 256,
+      "systemPrompt": "你是一个订单查询助手。根据订单号生成简短中文摘要（50字以内），必须提到订单在配送中。",
+      "userPrompt": "根据订单号 {{orderId}} 生成订单状态摘要。",
+      "talkHistory": 0,
+      "inputVars": [{"varName":"orderId","varType":"String","originalVarType":"String"}],
+      "outputVars": [{"varName":"orderSummary","varType":"String"}]
+    }
+  },
+  "inputSchema": [{"name":"orderId","type":"string","required":true,"description":"订单号"}],
+  "outputSchema": [{"name":"orderSummary","type":"string"}],
+  "inputMapping": [{"source":"inputs.orderId","target":"node.params.orderId"}],
+  "outputMapping": [{"source":"result.orderSummary","target":"outputs.orderSummary"}],
+  "memoryMapping": [{"source":"outputs.orderSummary","target":"memory.orderSummary"}]
+}
