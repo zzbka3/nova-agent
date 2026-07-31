@@ -2,3 +2,4 @@
 /nova-agent-backend/target/
 /nova-agent-backend/src/main/resources/application-dev.yml
 /nova-agent-backend/src/test/resources/application-test.yml
+/.idea/
