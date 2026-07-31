@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nova.agent.react.repository.PlannerTraceMapper">
+
+    <resultMap id="BaseResultMap" type="com.nova.agent.react.trace.PlannerTrace">
+        <id column="id" property="id"/>
+        <result column="app_id" property="appId"/>
+        <result column="conversation_id" property="conversationId"/>
+        <result column="execute_id" property="executeId"/>
+        <result column="loop_index" property="loopIndex"/>
+        <result column="trace_type" property="traceType"/>
+        <result column="thought" property="thought"/>
+        <result column="action_type" property="actionType"/>
+        <result column="action_target" property="actionTarget"/>
+        <result column="action_arguments" property="actionArguments"/>
+        <result column="result_summary" property="resultSummary"/>
+        <result column="result_success" property="resultSuccess"/>
+        <result column="result_outputs" property="resultOutputs"/>
+        <result column="signal" property="signal"/>
+        <result column="cost_time" property="costTime"/>
+        <result column="used_tokens" property="usedTokens"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, app_id, conversation_id, execute_id, loop_index, trace_type,
+        thought, action_type, action_target, action_arguments,
+        result_summary, result_success, result_outputs, `signal`,
+        cost_time, used_tokens, create_time
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO planner_trace (app_id, conversation_id, execute_id, loop_index, trace_type,
+          thought, action_type, action_target, action_arguments,
+          result_summary, result_success, result_outputs, `signal`,
+          cost_time, used_tokens)
+        VALUES (#{appId}, #{conversationId}, #{executeId}, #{loopIndex}, #{traceType},
+          #{thought}, #{actionType}, #{actionTarget}, #{actionArguments},
+          #{resultSummary}, #{resultSuccess}, #{resultOutputs}, #{signal},
+          #{costTime}, #{usedTokens})
+    </insert>
+
+    <select id="selectByExecuteId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM planner_trace
+        WHERE execute_id = #{executeId}
+        ORDER BY loop_index ASC, id ASC
+    </select>
+
+    <select id="selectByConversation" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM planner_trace
+        WHERE app_id = #{appId} AND conversation_id = #{conversationId}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByConversationAndLoop" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM planner_trace
+        WHERE app_id = #{appId} AND conversation_id = #{conversationId} AND execute_id = #{executeId}
+        ORDER BY loop_index ASC, id ASC
+    </select>
+
+</mapper>

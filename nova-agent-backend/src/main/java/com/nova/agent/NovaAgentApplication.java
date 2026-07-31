@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@MapperScan("com.nova.agent.repository")
+@MapperScan({"com.nova.agent.repository", "com.nova.agent.react.repository"})
 @EnableScheduling
 public class NovaAgentApplication {
 

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nova.agent.react.repository.ToolDefinitionMapper">
+
+    <resultMap id="BaseResultMap" type="com.nova.agent.react.tool.ToolDefinition">
+        <id column="id" property="id"/>
+        <result column="tool_id" property="toolId"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="executor_type" property="executorType"/>
+        <result column="executor_resource_id" property="executorResourceId"/>
+        <result column="input_schema" property="inputSchema"/>
+        <result column="output_schema" property="outputSchema"/>
+        <result column="input_mapping" property="inputMapping"/>
+        <result column="output_mapping" property="outputMapping"/>
+        <result column="memory_mapping" property="memoryMapping"/>
+        <result column="status" property="status"/>
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="updater" property="updater"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, tool_id, name, description, executor_type, executor_resource_id,
+        input_schema, output_schema, input_mapping, output_mapping, memory_mapping,
+        status, creator, create_time, updater, update_time
+    </sql>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM tool_definition
+    </select>
+
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM tool_definition
+        WHERE status = #{status}
+    </select>
+
+    <select id="selectByToolId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM tool_definition
+        WHERE tool_id = #{toolId} LIMIT 1
+    </select>
+
+    <select id="selectByToolIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM tool_definition
+        WHERE tool_id IN
+        <foreach collection="toolIds" item="toolId" open="(" separator="," close=")">
+            #{toolId}
+        </foreach>
+        AND status = 1
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tool_definition (tool_id, name, description, executor_type, executor_resource_id,
+          input_schema, output_schema, input_mapping, output_mapping, memory_mapping, status, creator)
+        VALUES (#{toolId}, #{name}, #{description}, #{executorType}, #{executorResourceId},
+          #{inputSchema}, #{outputSchema}, #{inputMapping}, #{outputMapping}, #{memoryMapping}, #{status}, #{creator})
+    </insert>
+
+    <update id="updateByToolId">
+        UPDATE tool_definition
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="executorType != null">executor_type = #{executorType},</if>
+            <if test="executorResourceId != null">executor_resource_id = #{executorResourceId},</if>
+            <if test="inputSchema != null">input_schema = #{inputSchema},</if>
+            <if test="outputSchema != null">output_schema = #{outputSchema},</if>
+            <if test="inputMapping != null">input_mapping = #{inputMapping},</if>
+            <if test="outputMapping != null">output_mapping = #{outputMapping},</if>
+            <if test="memoryMapping != null">memory_mapping = #{memoryMapping},</if>
+            <if test="status != null">status = #{status},</if>
+            updater = #{updater},
+            update_time = NOW()
+        </set>
+        WHERE tool_id = #{toolId}
+    </update>
+
+    <delete id="deleteByToolId">
+        DELETE FROM tool_definition WHERE tool_id = #{toolId}
+    </delete>
+
+</mapper>

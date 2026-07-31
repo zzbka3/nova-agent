@@ -221,3 +221,57 @@ ON DUPLICATE KEY UPDATE `account_id` = VALUES(`account_id`);
 INSERT INTO `dictionary` (`code`, `value`, `description`) VALUES
 ('KNOWLEDGE_NODE_OUT_SCHEMA', '{"field":"OutputList","type":"ArrayObject","children":[{"field":"segment_id","type":"String"},{"field":"document_id","type":"String"},{"field":"dataset_id","type":"String"},{"field":"content","type":"String"},{"field":"document_name","type":"String"},{"field":"dataset_name","type":"String"},{"field":"word_count","type":"String"}]}', '知识库节点输出字段结构')
 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
+
+-- -----------------------------------------------------------
+-- 13. tool_definition - Tool 定义注册中心
+-- -----------------------------------------------------------
+-- Ensure column types are correct if table already exists
+ALTER TABLE `tool_definition` MODIFY COLUMN `executor_resource_id` MEDIUMTEXT DEFAULT NULL COMMENT '执行器资源详情（Node 完整配置 JSON）';
+
+CREATE TABLE IF NOT EXISTS `tool_definition` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `tool_id` VARCHAR(64) NOT NULL COMMENT 'Tool 唯一标识',
+  `name` VARCHAR(128) NOT NULL DEFAULT '' COMMENT '展示名称',
+  `description` VARCHAR(512) NOT NULL DEFAULT '' COMMENT '给 Planner 看的描述',
+  `executor_type` VARCHAR(32) NOT NULL DEFAULT 'node' COMMENT '执行器类型: node/mcp/script',
+  `executor_resource_id` MEDIUMTEXT DEFAULT NULL COMMENT '执行器资源详情（Node 完整配置 JSON）',
+  `input_schema` TEXT NOT NULL COMMENT '入参 Schema JSON',
+  `output_schema` TEXT COMMENT '出参 Schema JSON',
+  `input_mapping` TEXT COMMENT '入参映射规则 JSON',
+  `output_mapping` TEXT COMMENT '出参映射规则 JSON',
+  `memory_mapping` TEXT COMMENT '记忆写入映射 JSON',
+  `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态: 0=禁用, 1=启用',
+  `creator` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updater` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_tool_id` (`tool_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tool 定义注册中心表';
+
+-- -----------------------------------------------------------
+-- 14. planner_trace - ReAct Planner 决策和 Tool 执行追踪
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `planner_trace` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `app_id` VARCHAR(64) NOT NULL COMMENT '智能体 ID',
+  `conversation_id` VARCHAR(64) NOT NULL COMMENT '会话 ID',
+  `execute_id` BIGINT NOT NULL COMMENT '执行记录 ID（关联 agent_execute_log.id）',
+  `loop_index` INT NOT NULL DEFAULT 0 COMMENT 'ReAct 循环轮次',
+  `trace_type` VARCHAR(16) NOT NULL COMMENT '追踪类型: PLANNER/TOOL/FINAL',
+  `thought` MEDIUMTEXT COMMENT 'Planner 的思考过程',
+  `action_type` VARCHAR(32) DEFAULT NULL COMMENT '动作类型: TOOL/FINAL',
+  `action_target` VARCHAR(128) DEFAULT NULL COMMENT '动作目标: tool_id 或 FINAL',
+  `action_arguments` TEXT COMMENT '动作参数 JSON',
+  `result_summary` VARCHAR(512) DEFAULT NULL COMMENT '执行结果摘要',
+  `result_success` TINYINT DEFAULT 1 COMMENT '执行是否成功: 0=失败, 1=成功',
+  `result_outputs` MEDIUMTEXT COMMENT '执行输出 JSON',
+  `signal` VARCHAR(32) DEFAULT NULL COMMENT '信号: CONTINUE/FINISH/ERROR',
+  `cost_time` INT NOT NULL DEFAULT 0 COMMENT '耗时(毫秒)',
+  `used_tokens` INT NOT NULL DEFAULT 0 COMMENT '消耗 tokens',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_execute_id` (`execute_id`),
+  KEY `idx_conversation` (`app_id`, `conversation_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Planner 追踪日志表';
